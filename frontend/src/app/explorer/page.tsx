@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { api } from '@/lib/api';
 import { ExplorerSkeleton } from '@/components/Skeleton';
+import { ledgersToHuman } from '@/lib/utils';
 import type { ScheduleEvent } from '@/types';
 
 function ErrorState({ message, onRetry }: { message: string; onRetry: () => void }) {
@@ -73,7 +74,7 @@ export default function ExplorerPage() {
                 <div className="flex items-center gap-3">
                   <TypeBadge type={ev.type} />
                   <span className="text-sm font-mono text-text-muted">#{ev.id}</span>
-                  <span className="text-sm text-text-primary">{ev.type === 'vault' ? 'Release' : ev.type === 'stream' ? 'Complete' : 'Swap'} in <strong>{ev.remainingLedgers}</strong> ledgers</span>
+                  <span className="text-sm text-text-primary">{ev.type === 'vault' ? 'Release' : ev.type === 'stream' ? 'Complete' : 'Swap'} in <strong>{ev.remainingLedgers}</strong> ledgers ({ledgersToHuman(ev.remainingLedgers)})</span>
                 </div>
                 <span className="text-xs text-text-muted">Ledger {ev.targetLedger}</span>
               </div>
