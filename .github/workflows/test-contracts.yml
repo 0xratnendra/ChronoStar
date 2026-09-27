@@ -32,3 +32,9 @@ jobs:
           target: wasm32-unknown-unknown
       - run: cargo test
         working-directory: contract
+      - run: cargo tarpaulin --out Xml --timeout 120
+        working-directory: contract
+      - uses: actions/upload-artifact@v4
+        with:
+          name: contract-coverage
+          path: contract/cobertura.xml

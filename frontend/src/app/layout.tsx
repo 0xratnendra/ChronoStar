@@ -7,6 +7,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://chronostar.io'),
   title: 'ChronoStar — Scheduled Payments on Stellar',
   description: 'Time-based payment primitives for the Stellar ecosystem: ScheduleVault, RecurringStream, DCAPolicy.',
+  keywords: ['stellar', 'scheduled payments', 'smart contracts', 'chronostar'],
   icons: {
     icon: [
       { url: '/chronostar-logo-mark.svg', type: 'image/svg+xml' },
