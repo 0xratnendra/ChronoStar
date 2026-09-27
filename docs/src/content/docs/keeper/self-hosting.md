@@ -70,4 +70,4 @@ Each watcher runs on an interval (`POLL_INTERVAL_MS`):
 2. **StreamWatcher**: Reads `stream_count` and `get_stream` for each stream. If `current_ledger >= end_ledger`, calls `tick()`.
 3. **DCAWatcher**: Reads `dca_count` and `get_dca` for each DCA. If `current_ledger >= next_execution_ledger`, calls `execute_swap()`.
 
-All contract invocations use exponential backoff retry (2^attempt base delay).
+All contract invocations use exponential backoff retry (2^attempt base delay) and automatically re-fetch the keeper source account sequence on `tx_bad_seq` / submission failure, preventing stale sequence lockouts when multiple transactions occur.
