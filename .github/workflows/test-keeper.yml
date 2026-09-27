@@ -34,3 +34,9 @@ jobs:
         working-directory: keeper
       - run: npm test
         working-directory: keeper
+      - run: npx c8 --reporter=text --reporter=lcov npm test
+        working-directory: keeper
+      - uses: actions/upload-artifact@v4
+        with:
+          name: keeper-coverage
+          path: keeper/coverage

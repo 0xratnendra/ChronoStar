@@ -7,8 +7,9 @@ export function createServer(watchers) {
     res.setHeader('Content-Type', 'application/json');
 
     if (req.url === '/healthz') {
-      res.writeHead(200);
-      res.end(JSON.stringify({ status: 'ok' }));
+      const stale = Object.values(watchers).filter((w) => w.lastPoll && Date.now() - w.lastPoll > 5 * 60_000);
+      res.writeHead(stale.length ? 503 : 200);
+      res.end(JSON.stringify({ status: stale.length ? 'degraded' : 'ok', ledger: watchers.__ledger ?? null, staleWatchers: stale.length }));
       return;
     }
 
