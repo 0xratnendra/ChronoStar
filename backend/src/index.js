@@ -11,6 +11,14 @@ const clients = {
   dca: { client, contractId: config.dcaContractId },
 };
 
-createApp(clients, logger).listen(config.port, () => {
+const server = createApp(clients, logger).listen(config.port, () => {
   logger.info({ port: config.port }, 'backend listening');
 });
+
+for (const signal of ['SIGTERM', 'SIGINT']) {
+  process.on(signal, () => {
+    logger.info({ signal }, 'draining in-flight connections');
+    server.close(() => process.exit(0));
+    setTimeout(() => process.exit(1), 10_000).unref();
+  });
+}
