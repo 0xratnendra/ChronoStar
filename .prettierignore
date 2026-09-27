@@ -1,0 +1,21 @@
+# Node & Build artifacts
+node_modules
+.next
+dist
+build
+coverage
+.astro
+
+# Rust / Soroban contract files (handled by cargo fmt)
+contract/
+target/
+*.rs
+
+# Generated contract spec files
+backend/src/specs/
+frontend/src/specs/
+keeper/src/specs/
+*.spec.json
+
+# Lockfiles
+package-lock.json

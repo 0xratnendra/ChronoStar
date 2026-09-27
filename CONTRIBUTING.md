@@ -1,6 +1,8 @@
 # Contributing to ChronoStar
 
-Thanks for your interest in contributing. ChronoStar is a Stellar Soroban protocol for scheduled and recurring payments.
+Thanks for your interest in contributing! ChronoStar is a Stellar Soroban protocol for scheduled and recurring payments.
+
+> 🎓 **New Contributor?** Check out our step-by-step [Good-First-Issue Onboarding Curriculum](file:///C:/Users/JUST%20J/repos/ChronoStar/docs/src/content/docs/getting-started/onboarding-curriculum.md) for setup checklists, curated starter tasks, and walkthroughs.
 
 ## Prerequisites
 

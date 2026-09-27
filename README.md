@@ -144,7 +144,7 @@ chronostar/
 
 ## Contributing
 
-See [CONTRIBUTING.md](./CONTRIBUTING.md) for setup, conventions, and how to pick up a `good-first-issue`. All contributors must follow the [Code of Conduct](./CODE_OF_CONDUCT.md). See [CHANGELOG.md](./CHANGELOG.md) for release history and [ROADMAP.md](./ROADMAP.md) for upcoming milestones.
+See [CONTRIBUTING.md](./CONTRIBUTING.md) and our [Good-First-Issue Onboarding Curriculum](file:///C:/Users/JUST%20J/repos/ChronoStar/docs/src/content/docs/getting-started/onboarding-curriculum.md) for setup checklists, curated starter tasks, and how to pick up a `good-first-issue`. All contributors must follow the [Code of Conduct](./CODE_OF_CONDUCT.md). See [CHANGELOG.md](./CHANGELOG.md) for release history and [ROADMAP.md](./ROADMAP.md) for upcoming milestones.
 
 ## License
 
