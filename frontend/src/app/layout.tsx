@@ -44,9 +44,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body className="min-h-screen antialiased">
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:rounded focus:bg-white focus:px-4 focus:py-2 focus:text-black focus:shadow-lg"
+        >
+          Skip to content
+        </a>
         <WalletProvider>
           <Navbar />
-          <main className="max-w-7xl mx-auto px-4 py-8">
+          <main id="main-content" tabIndex={-1} className="max-w-7xl mx-auto px-4 py-8 focus:outline-none">
             {children}
           </main>
         </WalletProvider>
