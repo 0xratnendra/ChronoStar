@@ -10,8 +10,9 @@ import { createStatsRouter } from './routes/stats.js';
 import { createDocsRouter } from './routes/docs.js';
 import { createLiveStreamRouter } from './routes/live-stream.js';
 import { EventStore } from './store.js';
+import { createEventStore } from './store.js';
 
-export function createApp(clients, log = logger, store = new EventStore()) {
+export function createApp(clients, log = logger, store = createEventStore()) {
   const app = express();
 
   app.use(cors());

@@ -62,6 +62,13 @@ export class SorobanClient {
   }
 
   async invokeContract(contractId, method, args, correlationId) {
+  async refreshAccount() {
+    if (this.sourceKeypair) {
+      this.sourceAccount = await this.server.getAccount(this.sourceKeypair.publicKey());
+    }
+  }
+
+  async invokeContract(contractId, method, args) {
     if (!this.sourceAccount || !this.sourceKeypair) {
       throw new Error('keeper secret required to invoke contract calls');
     }
@@ -100,6 +107,20 @@ export class SorobanClient {
       } catch (err) {
         lastError = err;
         logger.warn({ attempt, method, correlationId, err: err.message }, 'contract invocation failed');
+        if (submitResponse.status === 'ERROR') {
+          throw new Error(`sendTransaction error: ${submitResponse.errorResultXdr || submitResponse.status}`);
+        }
+        return submitResponse;
+      } catch (err) {
+        lastError = err;
+        logger.warn({ attempt, method, err: err.message }, 'contract invocation failed');
+        if (this.sourceKeypair) {
+          try {
+            await this.refreshAccount();
+          } catch (refreshErr) {
+            logger.warn({ err: refreshErr.message }, 'failed to refresh source account sequence');
+          }
+        }
         if (attempt < config.retryMaxAttempts) {
           const delay = config.retryBaseDelayMs * Math.pow(2, attempt - 1);
           await sleep(delay);
