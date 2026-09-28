@@ -58,6 +58,24 @@ CMD ["node", "src/index.js"]
 
 Returns `{ "status": "ok" }` when the keeper is running.
 
+---
+
+## Uptime & Health Monitoring
+
+Both the backend and keeper services expose `GET /healthz` endpoints for status polling.
+
+### Vendor-Neutral Configuration
+
+A vendor-agnostic monitor config is available at `monitoring/uptime-config.json`. You can import this specification into tools like Uptime Kuma, Better Uptime, or Datadog:
+- **Interval**: 60 seconds
+- **Expected Status**: 200 OK (`{ "status": "ok" }`)
+- **Alert Channels**: Webhook & Email notifications on failure and recovery
+
+### GitHub Actions Fallback Monitor
+
+For self-hosted deployments without dedicated external monitoring, ChronoStar provides a fallback GitHub Actions workflow (`.github/workflows/uptime-monitor.yml`) that polls both endpoints every 15 minutes and alerts on failure.
+
+
 ### `GET /metrics`
 
 Returns watcher state and process info.

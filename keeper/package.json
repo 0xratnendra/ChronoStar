@@ -7,7 +7,9 @@
     "start": "node src/index.js",
     "dev": "node --watch src/index.js",
     "test": "node --test src/**/*.test.js",
-    "lint": "eslint src/"
+    "lint": "eslint src/",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "dependencies": {
     "@stellar/stellar-sdk": "^17.1.0",

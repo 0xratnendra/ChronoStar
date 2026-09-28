@@ -29,4 +29,5 @@ What should exist when this is done.
 
 ## Helpful Resources
 
+- [Good-First-Issue Onboarding Curriculum](file:///C:/Users/JUST%20J/repos/ChronoStar/docs/src/content/docs/getting-started/onboarding-curriculum.md)
 - Link to relevant docs, similar PRs, or reference implementations.
