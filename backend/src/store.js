@@ -3,8 +3,29 @@ import { dirname, resolve } from 'node:path';
 
 const DEFAULT_PATH = resolve(process.env.EVENT_STORE_PATH || 'data/events.json');
 
-export class EventStore {
+/**
+ * Base abstract EventStore interface.
+ */
+export class BaseEventStore {
+  async load() {
+    throw new Error('BaseEventStore.load() must be implemented');
+  }
+
+  async append(_events) {
+    throw new Error('BaseEventStore.append() must be implemented');
+  }
+
+  async list(_limit = 50) {
+    throw new Error('BaseEventStore.list() must be implemented');
+  }
+}
+
+/**
+ * File-backed JSON EventStore driver.
+ */
+export class FileEventStore extends BaseEventStore {
   constructor(filePath = DEFAULT_PATH, maxEvents = 10_000) {
+    super();
     this.filePath = filePath;
     this.maxEvents = maxEvents;
     this.events = null;
@@ -46,5 +67,112 @@ export class EventStore {
   async list(limit = 50) {
     const events = await this.load();
     return events.slice(-limit).reverse();
+  }
+}
+
+// Backward compatibility export
+export const EventStore = FileEventStore;
+
+/**
+ * In-Memory EventStore driver.
+ */
+export class InMemoryEventStore extends BaseEventStore {
+  constructor(maxEvents = 10_000) {
+    super();
+    this.maxEvents = maxEvents;
+    this.events = [];
+  }
+
+  async load() {
+    return this.events;
+  }
+
+  async append(events) {
+    const incoming = Array.isArray(events) ? events : [events];
+    const known = new Set(this.events.map((e) => e.key));
+    const additions = incoming
+      .map((event) => ({ ...event, key: event.key || `${event.type}:${event.id}:${event.targetLedger}` }))
+      .filter((event) => !known.has(event.key));
+    if (!additions.length) return this.events;
+    this.events = [...this.events, ...additions].slice(-this.maxEvents);
+    return this.events;
+  }
+
+  async list(limit = 50) {
+    return this.events.slice(-limit).reverse();
+  }
+}
+
+/**
+ * Stubbed production Postgres EventStore driver.
+ * Recommended table schema:
+ * CREATE TABLE events (
+ *   key VARCHAR(255) PRIMARY KEY,
+ *   type VARCHAR(64) NOT NULL,
+ *   event_id INT NOT NULL,
+ *   target_ledger INT NOT NULL,
+ *   remaining_ledgers INT,
+ *   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+ * );
+ */
+export class PostgresEventStore extends BaseEventStore {
+  constructor(options = {}) {
+    super();
+    this.options = options;
+    this.fallback = new InMemoryEventStore();
+  }
+
+  async load() {
+    return this.fallback.load();
+  }
+
+  async append(events) {
+    return this.fallback.append(events);
+  }
+
+  async list(limit = 50) {
+    return this.fallback.list(limit);
+  }
+}
+
+/**
+ * Stubbed production SQLite EventStore driver.
+ */
+export class SQLiteEventStore extends BaseEventStore {
+  constructor(options = {}) {
+    super();
+    this.options = options;
+    this.fallback = new InMemoryEventStore();
+  }
+
+  async load() {
+    return this.fallback.load();
+  }
+
+  async append(events) {
+    return this.fallback.append(events);
+  }
+
+  async list(limit = 50) {
+    return this.fallback.list(limit);
+  }
+}
+
+/**
+ * Driver registry factory.
+ */
+export function createEventStore(driver = process.env.EVENT_STORE_DRIVER || 'file', options = {}) {
+  switch (driver.toLowerCase()) {
+    case 'memory':
+    case 'inmemory':
+      return new InMemoryEventStore(options.maxEvents);
+    case 'postgres':
+    case 'pg':
+      return new PostgresEventStore(options);
+    case 'sqlite':
+      return new SQLiteEventStore(options);
+    case 'file':
+    default:
+      return new FileEventStore(options.filePath, options.maxEvents);
   }
 }

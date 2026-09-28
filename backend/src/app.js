@@ -7,9 +7,9 @@ import { createSchedulesRouter } from './routes/schedules.js';
 import { createStreamsRouter, createDCARouter } from './routes/streams.js';
 import { createEventsRouter } from './routes/events.js';
 import { createStatsRouter } from './routes/stats.js';
-import { EventStore } from './store.js';
+import { createEventStore } from './store.js';
 
-export function createApp(clients, log = logger, store = new EventStore()) {
+export function createApp(clients, log = logger, store = createEventStore()) {
   const app = express();
 
   app.use(cors());

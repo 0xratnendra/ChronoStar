@@ -14,16 +14,30 @@ export default function CreateVaultPage() {
   const [releaseLedger, setReleaseLedger] = useState('');
   const [label, setLabel] = useState('');
   const [txStatus, setTxStatus] = useState<'pending' | 'success' | 'error' | null>(null);
-  const [txHash, setTxHash] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!address) return;
+    if (!address || txStatus === 'pending') return;
     setTxStatus('pending');
-    // In production this would call the contract via Freighter
-    setTxStatus('success');
-    setTxHash('demo-tx-hash');
-    setTimeout(() => router.push('/dashboard'), 1500);
+    setErrorMessage(undefined);
+
+    try {
+      const { createVaultTx } = await import('@/lib/contracts');
+      const { hash } = await createVaultTx(address, {
+        recipient,
+        token,
+        amount,
+        releaseLedger,
+        label,
+      });
+      setTxStatus('success');
+      setTxHash(hash);
+      setTimeout(() => router.push('/dashboard'), 1500);
+    } catch (err: any) {
+      setTxStatus('error');
+      setErrorMessage(err?.message || 'Transaction failed');
+    }
   };
 
   if (!isConnected) {
@@ -41,13 +55,14 @@ export default function CreateVaultPage() {
         <Field testid="label" label="Label" value={label} onChange={setLabel} placeholder="My vault" maxLength={64} />
         <button
           type="submit"
+          disabled={txStatus === 'pending'}
           data-testid="create-vault-submit"
-          className="w-full py-3 rounded-lg bg-accent-blue text-white font-medium hover:opacity-90 transition-opacity"
+          className="w-full py-3 rounded-lg bg-accent-blue text-white font-medium hover:opacity-90 disabled:opacity-50 transition-opacity"
         >
-          Create Vault
+          {txStatus === 'pending' ? 'Submitting...' : 'Create Vault'}
         </button>
       </form>
-      <TxToast status={txStatus} hash={txHash} message={txStatus === 'success' ? 'Vault created!' : undefined} onClose={() => setTxStatus(null)} />
+      <TxToast status={txStatus} hash={txHash} message={txStatus === 'success' ? 'Vault created!' : errorMessage} onClose={() => setTxStatus(null)} />
     </div>
   );
 }

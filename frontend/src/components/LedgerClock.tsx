@@ -2,50 +2,60 @@
 
 import { useState, useEffect } from 'react';
 
-export function LedgerClock() {
-  const [ledger, setLedger] = useState(0);
-  const [time, setTime] = useState('');
+interface LedgerClockProps {
+  targetLedger: number;
+  currentLedger?: number;
+  secondsPerLedger?: number; // Configurable per-ledger duration
+  className?: string;
+}
+
+export function LedgerClock({
+  targetLedger,
+  currentLedger = 1000,
+  secondsPerLedger = 5,
+  className = '',
+}: LedgerClockProps) {
+  const [now, setNow] = useState<Date>(() => new Date());
 
   useEffect(() => {
-    const fetchLedger = async () => {
-      try {
-        const res = await fetch('https://soroban-testnet.stellar.org/rpc', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            jsonrpc: '2.0',
-            id: 1,
-            method: 'getLatestLedger',
-          }),
-        });
-        const data = await res.json();
-        if (data.result?.sequence) {
-          setLedger(data.result.sequence);
-        }
-      } catch {
-        // fallback
-      }
-    };
-
-    fetchLedger();
-    const interval = setInterval(fetchLedger, 10000);
-    return () => clearInterval(interval);
+    const timer = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(timer);
   }, []);
 
-  useEffect(() => {
-    const t = setInterval(() => {
-      setTime(new Date().toLocaleTimeString());
-    }, 1000);
-    return () => clearInterval(t);
-  }, []);
+  const remainingLedgers = targetLedger - currentLedger;
+  const targetSecondsFromNow = remainingLedgers * secondsPerLedger;
+  const targetTime = new Date(now.getTime() + targetSecondsFromNow * 1000);
+  const isOverdue = remainingLedgers < 0;
+
+  const formattedAbsolute = targetTime.toISOString().replace('T', ' ').substring(0, 19) + ' UTC';
+
+  let countdownText = '';
+  if (isOverdue) {
+    countdownText = `Overdue by ${Math.abs(remainingLedgers)} ledgers`;
+  } else if (targetSecondsFromNow <= 0) {
+    countdownText = 'Due now';
+  } else {
+    const totalSec = Math.floor(targetSecondsFromNow);
+    const days = Math.floor(totalSec / 86400);
+    const hours = Math.floor((totalSec % 86400) / 3600);
+    const mins = Math.floor((totalSec % 3600) / 60);
+    const secs = totalSec % 60;
+
+    if (days > 0) countdownText = `${days}d ${hours}h remaining`;
+    else if (hours > 0) countdownText = `${hours}h ${mins}m remaining`;
+    else if (mins > 0) countdownText = `${mins}m ${secs}s remaining`;
+    else countdownText = `${secs}s remaining`;
+  }
 
   return (
-    <div className="flex items-center gap-3 text-sm text-text-muted">
-      <span className="flex items-center gap-1.5">
-        <span className="w-1.5 h-1.5 rounded-full bg-accent-green animate-pulse" />
-        Ledger {ledger}
-      </span>
-      <span>{time}</span>
+    <div
+      data-testid="ledger-clock"
+      className={`inline-flex flex-wrap items-center gap-2 text-xs ${
+        isOverdue ? 'text-red-500 font-medium' : 'text-text-muted'
+      } ${className}`}
+    >
+      <span className="font-semibold">{countdownText}</span>
+      <span className="opacity-70">({formattedAbsolute})</span>
     </div>
   );
 }
