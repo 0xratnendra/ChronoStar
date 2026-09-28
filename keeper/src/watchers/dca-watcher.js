@@ -50,9 +50,12 @@ export class DCAWatcher {
 
         if (currentSeq >= nextExec) {
           cycleLogger.info({ dcaId: i }, 'executing DCA swap');
-          await this.client.invokeContract(this.contractId, 'execute_swap', [
-            xdr.ScVal.scvU64(BigInt(i)),
-          ]);
+          await this.client.invokeContract(
+            this.contractId,
+            'execute_swap',
+            [xdr.ScVal.scvU64(BigInt(i))],
+            correlationId,
+          );
         }
       }
     } catch (err) {

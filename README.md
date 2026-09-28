@@ -111,6 +111,9 @@ A machine-readable OpenAPI 3.0.3 specification is available at [`backend/openapi
 | Endpoint | Description |
 |----------|-------------|
 | `GET /healthz` | Health check |
+| `GET /api/docs` | Interactive Swagger UI documentation |
+| `GET /api/openapi.json` | OpenAPI 3.0.3 specification JSON |
+| `GET /api/stream` | Server-Sent Events stream for live schedule updates |
 | `GET /api/stats` | Aggregated stats across all contracts |
 | `GET /api/events` | Upcoming executable events |
 | `GET /api/schedules/:address` | Vaults for an address |
