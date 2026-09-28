@@ -16,11 +16,11 @@ description: Deploy contracts, run the keeper, and open the dashboard.
 cd contract
 cargo build --target wasm32-unknown-unknown --release
 
-# Install Soroban CLI
-cargo install --locked soroban-cli
+# Install Stellar CLI
+cargo install --locked stellar-cli
 
 # Deploy each contract
-soroban contract deploy \
+stellar contract deploy \
   --wasm target/wasm32-unknown-unknown/release/schedule_vault.wasm \
   --source <SECRET> \
   --rpc-url https://soroban-testnet.stellar.org \
