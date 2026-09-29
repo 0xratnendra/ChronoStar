@@ -7,7 +7,7 @@
 [![Test Keeper](https://github.com/aadviksinghdebug/ChronoStar/actions/workflows/test-keeper.yml/badge.svg)](https://github.com/aadviksinghdebug/ChronoStar/actions/workflows/test-keeper.yml)
 [![Deploy Docs](https://github.com/aadviksinghdebug/ChronoStar/actions/workflows/deploy-docs.yml/badge.svg)](https://github.com/aadviksinghdebug/ChronoStar/actions/workflows/deploy-docs.yml)
 
-Time-based payment primitives for the Stellar ecosystem — scheduled vaults, recurring streams, and DCA policies.
+Time-based payment primitives for the Stellar ecosystem: time-locked vaults, recurring payment streams, and on-chain DCA policies.
 
 ## Deployed Contracts (Testnet)
 
@@ -90,7 +90,7 @@ npm start
 
 ## Running the Keeper
 
-The keeper bot periodically checks for vaults/streams/DCA policies that are due for execution on-chain. To run it:
+The keeper bot watches for vaults, streams, and DCA policies that become due for execution on-chain, then submits the transactions. To run it locally:
 
 ```bash
 cd keeper
@@ -147,6 +147,7 @@ chronostar/
 
 ## Contributing
 
+New to the project? Start with a [`good-first-issue`](https://github.com/0xratnendra/ChronoStar/labels/good-first-issue) — [CONTRIBUTING.md](./CONTRIBUTING.md) covers setup, conventions, and the review process. Everyone participating is expected to follow the [Code of Conduct](./CODE_OF_CONDUCT.md). Release history lives in [CHANGELOG.md](./CHANGELOG.md) and upcoming milestones in [ROADMAP.md](./ROADMAP.md).
 See [CONTRIBUTING.md](./CONTRIBUTING.md) and our [Good-First-Issue Onboarding Curriculum](file:///C:/Users/JUST%20J/repos/ChronoStar/docs/src/content/docs/getting-started/onboarding-curriculum.md) for setup checklists, curated starter tasks, and how to pick up a `good-first-issue`. All contributors must follow the [Code of Conduct](./CODE_OF_CONDUCT.md). See [CHANGELOG.md](./CHANGELOG.md) for release history and [ROADMAP.md](./ROADMAP.md) for upcoming milestones.
 
 ## License
