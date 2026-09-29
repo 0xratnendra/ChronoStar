@@ -1,0 +1,17 @@
+{
+  "name": "chronostar-root",
+  "private": true,
+  "workspaces": [
+    "backend",
+    "frontend",
+    "keeper",
+    "docs"
+  ],
+  "scripts": {
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "devDependencies": {
+    "prettier": "^3.2.5"
+  }
+}

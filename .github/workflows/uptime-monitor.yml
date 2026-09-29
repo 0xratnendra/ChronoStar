@@ -1,0 +1,41 @@
+name: Service Uptime & Health Check Monitor
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+
+jobs:
+  uptime-check:
+    name: Check Service Health
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Check Backend Health
+        run: |
+          BACKEND_URL="${{ secrets.BACKEND_HEALTH_URL || 'https://chronostar-backend-s905.onrender.com/healthz' }}"
+          echo "Polling Backend Health Endpoint: $BACKEND_URL"
+          RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" "$BACKEND_URL")
+          if [ "$RESPONSE" -ne 200 ]; then
+            echo "❌ Backend health check failed with status code $RESPONSE"
+            exit 1
+          fi
+          echo "✅ Backend is healthy (HTTP 200)"
+
+      - name: Check Keeper Health (if configured)
+        run: |
+          KEEPER_URL="${{ secrets.KEEPER_HEALTH_URL }}"
+          if [ -n "$KEEPER_URL" ]; then
+            echo "Polling Keeper Health Endpoint: $KEEPER_URL"
+            RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" "$KEEPER_URL")
+            if [ "$RESPONSE" -ne 200 ]; then
+              echo "❌ Keeper health check failed with status code $RESPONSE"
+              exit 1
+            fi
+            echo "✅ Keeper is healthy (HTTP 200)"
+          else
+            echo "ℹ️ KEEPER_HEALTH_URL secret not set, skipping remote keeper HTTP check"
+          fi

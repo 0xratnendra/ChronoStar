@@ -7,9 +7,12 @@ import { createSchedulesRouter } from './routes/schedules.js';
 import { createStreamsRouter, createDCARouter } from './routes/streams.js';
 import { createEventsRouter } from './routes/events.js';
 import { createStatsRouter } from './routes/stats.js';
+import { createDocsRouter } from './routes/docs.js';
+import { createLiveStreamRouter } from './routes/live-stream.js';
 import { EventStore } from './store.js';
+import { createEventStore } from './store.js';
 
-export function createApp(clients, log = logger, store = new EventStore()) {
+export function createApp(clients, log = logger, store = createEventStore()) {
   const app = express();
 
   app.use(cors());
@@ -20,6 +23,8 @@ export function createApp(clients, log = logger, store = new EventStore()) {
   app.use(express.json());
   app.use(globalLimiter);
 
+  app.use('/api', createDocsRouter());
+  app.use('/api/stream', createLiveStreamRouter(clients, log));
   app.use('/api/schedules', createSchedulesRouter(clients.vault.client, clients.vault.contractId));
   app.use('/api/streams', createStreamsRouter(clients.stream.client, clients.stream.contractId));
   app.use('/api/dca', createDCARouter(clients.dca.client, clients.dca.contractId));

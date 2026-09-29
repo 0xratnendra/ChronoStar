@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { api } from '@/lib/api';
-import { ExplorerSkeleton } from '@/components/Skeleton';
+import { LedgerClock } from '@/components/LedgerClock';
 import { ledgersToHuman } from '@/lib/utils';
 import type { ScheduleEvent } from '@/types';
 
@@ -44,15 +44,11 @@ export default function ExplorerPage() {
   }, [fetchEvents]);
 
   if (loading) {
-    return <p className="text-text-muted text-center py-12">Loading...</p>;
+    return <ExplorerSkeleton />;
   }
 
   if (error) {
     return <ErrorState message={error} onRetry={fetchEvents} />;
-  }
-
-  if (loading) {
-    return <ExplorerSkeleton />;
   }
 
   return (
@@ -70,13 +66,18 @@ export default function ExplorerPage() {
               href={`/${ev.type}/${ev.id}`}
               className="block p-3 rounded-lg border border-border bg-bg-card hover:bg-bg-elevated transition-colors"
             >
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between flex-wrap gap-2">
                 <div className="flex items-center gap-3">
                   <TypeBadge type={ev.type} />
                   <span className="text-sm font-mono text-text-muted">#{ev.id}</span>
-                  <span className="text-sm text-text-primary">{ev.type === 'vault' ? 'Release' : ev.type === 'stream' ? 'Complete' : 'Swap'} in <strong>{ev.remainingLedgers}</strong> ledgers ({ledgersToHuman(ev.remainingLedgers)})</span>
+                  <span className="text-sm text-text-primary">
+                    {ev.type === 'vault' ? 'Release' : ev.type === 'stream' ? 'Complete' : 'Swap'} in <strong>{ev.remainingLedgers}</strong> ledgers ({ledgersToHuman(ev.remainingLedgers)})
+                  </span>
                 </div>
-                <span className="text-xs text-text-muted">Ledger {ev.targetLedger}</span>
+                <div className="flex items-center gap-4">
+                  <LedgerClock targetLedger={ev.targetLedger} currentLedger={ev.targetLedger - ev.remainingLedgers} />
+                  <span className="text-xs text-text-muted font-mono">Ledger {ev.targetLedger}</span>
+                </div>
               </div>
             </Link>
           ))}

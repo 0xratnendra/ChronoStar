@@ -50,9 +50,12 @@ export class StreamWatcher {
 
         if (currentSeq >= endLedger) {
           cycleLogger.info({ streamId: i }, 'ticking completed stream');
-          await this.client.invokeContract(this.contractId, 'tick', [
-            xdr.ScVal.scvU64(BigInt(i)),
-          ]);
+          await this.client.invokeContract(
+            this.contractId,
+            'tick',
+            [xdr.ScVal.scvU64(BigInt(i))],
+            correlationId,
+          );
         }
       }
     } catch (err) {

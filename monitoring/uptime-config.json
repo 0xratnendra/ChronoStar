@@ -1,0 +1,41 @@
+{
+  "version": "1.0",
+  "name": "ChronoStar Health & Uptime Monitoring",
+  "description": "Vendor-agnostic uptime monitoring specification for backend and keeper services.",
+  "monitors": [
+    {
+      "name": "ChronoStar Backend Health",
+      "endpoint": "https://chronostar-backend-s905.onrender.com/healthz",
+      "method": "GET",
+      "interval_seconds": 60,
+      "timeout_seconds": 10,
+      "expected_status": 200,
+      "expected_json_key": "status",
+      "expected_json_value": "ok"
+    },
+    {
+      "name": "ChronoStar Keeper Worker Health",
+      "endpoint": "http://localhost:3002/healthz",
+      "method": "GET",
+      "interval_seconds": 60,
+      "timeout_seconds": 10,
+      "expected_status": 200,
+      "expected_json_key": "status",
+      "expected_json_value": "ok"
+    }
+  ],
+  "alerts": {
+    "on_failure": true,
+    "on_recovery": true,
+    "channels": [
+      {
+        "type": "webhook",
+        "url_env": "UPTIME_ALERT_WEBHOOK_URL"
+      },
+      {
+        "type": "email",
+        "recipient_env": "UPTIME_ALERT_EMAIL"
+      }
+    ]
+  }
+}

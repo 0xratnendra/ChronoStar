@@ -56,9 +56,12 @@ export class VaultWatcher {
         const currentSeq = Number(currentLedger);
         if (currentSeq >= releaseLedger) {
           cycleLogger.info({ vaultId: i }, 'releasing vault');
-          await this.client.invokeContract(this.contractId, 'release', [
-            xdr.ScVal.scvU64(BigInt(i)),
-          ]);
+          await this.client.invokeContract(
+            this.contractId,
+            'release',
+            [xdr.ScVal.scvU64(BigInt(i))],
+            correlationId,
+          );
         }
       }
     } catch (err) {

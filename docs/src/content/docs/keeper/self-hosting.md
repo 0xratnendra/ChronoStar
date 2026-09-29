@@ -58,6 +58,24 @@ CMD ["node", "src/index.js"]
 
 Returns `{ "status": "ok" }` when the keeper is running.
 
+---
+
+## Uptime & Health Monitoring
+
+Both the backend and keeper services expose `GET /healthz` endpoints for status polling.
+
+### Vendor-Neutral Configuration
+
+A vendor-agnostic monitor config is available at `monitoring/uptime-config.json`. You can import this specification into tools like Uptime Kuma, Better Uptime, or Datadog:
+- **Interval**: 60 seconds
+- **Expected Status**: 200 OK (`{ "status": "ok" }`)
+- **Alert Channels**: Webhook & Email notifications on failure and recovery
+
+### GitHub Actions Fallback Monitor
+
+For self-hosted deployments without dedicated external monitoring, ChronoStar provides a fallback GitHub Actions workflow (`.github/workflows/uptime-monitor.yml`) that polls both endpoints every 15 minutes and alerts on failure.
+
+
 ### `GET /metrics`
 
 Returns watcher state and process info.
@@ -70,4 +88,4 @@ Each watcher runs on an interval (`POLL_INTERVAL_MS`):
 2. **StreamWatcher**: Reads `stream_count` and `get_stream` for each stream. If `current_ledger >= end_ledger`, calls `tick()`.
 3. **DCAWatcher**: Reads `dca_count` and `get_dca` for each DCA. If `current_ledger >= next_execution_ledger`, calls `execute_swap()`.
 
-All contract invocations use exponential backoff retry (2^attempt base delay).
+All contract invocations use exponential backoff retry (2^attempt base delay) and automatically re-fetch the keeper source account sequence on `tx_bad_seq` / submission failure, preventing stale sequence lockouts when multiple transactions occur.

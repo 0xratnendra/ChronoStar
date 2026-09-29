@@ -1,7 +1,6 @@
 #![no_std]
 use soroban_sdk::{
-    contract, contractimpl, contractmeta, contracttype, symbol_short, token, Address, Env, String,
-    Vec,
+    contract, contractimpl, contractmeta, contracttype, symbol_short, token, Address, Env, IntoVal, String, Symbol, Val, Vec,
 };
 
 contractmeta!(key = "name", val = "ChronoStar DCA Policy");
@@ -16,6 +15,7 @@ pub enum DataKey {
     DCA(u64),
     Counter,
     DCAsByOwner(Address),
+    Config,
 }
 
 #[contracttype]
@@ -24,10 +24,14 @@ pub struct DCAEntry {
     pub id: u64,
     pub owner: Address,
     pub token_in: Address,
+    pub token_out: Option<Address>,
+    pub router: Option<Address>,
     pub swap_receiver: Address,
     pub total_budget: i128,
     pub remaining_budget: i128,
     pub amount_per_swap: i128,
+    pub min_output_per_swap: i128,
+    pub last_swap_output: i128,
     pub interval_ledgers: u32,
     pub last_executed_ledger: u32,
     pub next_execution_ledger: u32,
@@ -58,6 +62,35 @@ impl DCAPolicy {
         swap_receiver: Address,
         total_budget: i128,
         amount_per_swap: i128,
+        interval_ledgers: u32,
+        label: String,
+    ) -> u64 {
+        Self::create_dca_swap(
+            env,
+            owner,
+            token_in,
+            None,
+            None,
+            swap_receiver,
+            total_budget,
+            amount_per_swap,
+            0,
+            interval_ledgers,
+            label,
+        )
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    pub fn create_dca_swap(
+        env: Env,
+        owner: Address,
+        token_in: Address,
+        token_out: Option<Address>,
+        router: Option<Address>,
+        swap_receiver: Address,
+        total_budget: i128,
+        amount_per_swap: i128,
+        min_output_per_swap: i128,
         interval_ledgers: u32,
         label: String,
     ) -> u64 {
@@ -93,10 +126,14 @@ impl DCAPolicy {
             id,
             owner: owner.clone(),
             token_in,
+            token_out,
+            router,
             swap_receiver,
             total_budget,
             remaining_budget: total_budget,
             amount_per_swap,
+            min_output_per_swap,
+            last_swap_output: 0,
             interval_ledgers,
             last_executed_ledger: current,
             next_execution_ledger: current + interval_ledgers,
@@ -146,12 +183,41 @@ impl DCAPolicy {
             "insufficient budget"
         );
 
-        let token_client = token::Client::new(&env, &dca.token_in);
-        token_client.transfer(
-            &env.current_contract_address(),
-            &dca.swap_receiver,
-            &dca.amount_per_swap,
-        );
+        if let (Some(router), Some(token_out)) = (dca.router.clone(), dca.token_out.clone()) {
+            let token_in_client = token::Client::new(&env, &dca.token_in);
+            token_in_client.approve(
+                &env.current_contract_address(),
+                &router,
+                &dca.amount_per_swap,
+                &(env.ledger().sequence() + 100),
+            );
+
+            let swap_args: Vec<Val> = (
+                env.current_contract_address(),
+                dca.swap_receiver.clone(),
+                dca.token_in.clone(),
+                token_out,
+                dca.amount_per_swap,
+                dca.min_output_per_swap,
+            )
+                .into_val(&env);
+
+            let output_amount: i128 =
+                env.invoke_contract(&router, &Symbol::new(&env, "swap"), swap_args);
+            assert!(
+                output_amount >= dca.min_output_per_swap,
+                "slippage shortfall"
+            );
+            dca.last_swap_output = output_amount;
+        } else {
+            let token_client = token::Client::new(&env, &dca.token_in);
+            token_client.transfer(
+                &env.current_contract_address(),
+                &dca.swap_receiver,
+                &dca.amount_per_swap,
+            );
+            dca.last_swap_output = dca.amount_per_swap;
+        }
 
         dca.remaining_budget -= dca.amount_per_swap;
         dca.executions_completed += 1;
@@ -410,5 +476,69 @@ mod test {
         let dca = dca_client.get_dca(&dca_id).unwrap();
         assert_eq!(dca.status, DCAStatus::Cancelled);
         assert_eq!(dca.remaining_budget, 0);
+    }
+
+    #[contract]
+    pub struct MockRouter;
+
+    #[contractimpl]
+    impl MockRouter {
+        pub fn swap(
+            env: Env,
+            _from: Address,
+            to: Address,
+            _token_in: Address,
+            token_out: Address,
+            _amount_in: i128,
+            min_amount_out: i128,
+        ) -> i128 {
+            let token_out_admin_client = TokenAdminClient::new(&env, &token_out);
+            let output = min_amount_out + 10;
+            token_out_admin_client.mint(&to, &output);
+            output
+        }
+    }
+
+    #[test]
+    fn test_execute_swap_with_router() {
+        let (env, contract_id, owner, swap_receiver, token_in) = setup_test();
+        let dca_client = DCAPolicyClient::new(&env, &contract_id);
+
+        let router_id = env.register(MockRouter, ());
+
+        let token_out_admin = Address::generate(&env);
+        let token_out = env
+            .register_stellar_asset_contract_v2(token_out_admin.clone())
+            .address();
+
+        let dca_id = dca_client.create_dca_swap(
+            &owner,
+            &token_in,
+            &Some(token_out.clone()),
+            &Some(router_id.clone()),
+            &swap_receiver,
+            &1_000_000,
+            &100_000,
+            &95_000,
+            &1440,
+            &String::from_str(&env, "Router DCA"),
+        );
+
+        env.ledger().set(LedgerInfo {
+            protocol_version: 22,
+            sequence_number: 2440,
+            timestamp: 0,
+            network_id: [0u8; 32],
+            base_reserve: 0,
+            min_persistent_entry_ttl: 1000,
+            min_temp_entry_ttl: 1000,
+            max_entry_ttl: 6_312_000,
+        });
+
+        dca_client.execute_swap(&dca_id);
+
+        let dca = dca_client.get_dca(&dca_id).unwrap();
+        assert_eq!(dca.executions_completed, 1);
+        assert_eq!(dca.last_swap_output, 95_010);
     }
 }
