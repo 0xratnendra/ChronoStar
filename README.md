@@ -153,3 +153,7 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) and our [Good-First-Issue Onboarding Cu
 ## License
 
 MIT — see [LICENSE](./LICENSE)
+
+## Security
+
+Please report suspected vulnerabilities privately through the [ChronoStar security policy](SECURITY.md) rather than opening a public issue.
