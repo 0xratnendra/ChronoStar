@@ -64,8 +64,7 @@ impl StreamEntry {
     }
 }
 
-#[contract]
-pub struct RecurringStream;
+
 
 #[contractimpl]
 impl RecurringStream {
