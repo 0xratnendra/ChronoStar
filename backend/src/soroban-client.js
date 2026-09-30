@@ -15,7 +15,7 @@ export class SorobanClient {
     const source = Keypair.random();
     const acc = new Account(source.publicKey(), '0');
     const tx = new TransactionBuilder(acc, {
-      fee: '100',
+      fee: null,
       networkPassphrase: this.networkPassphrase,
     })
       .addOperation(op)
