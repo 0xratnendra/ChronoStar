@@ -1,5 +1,5 @@
 import { describe, it, mock } from 'node:test';
-import assert from 'node:assert';
+import assert from 'node:assert/strict';
 import { SorobanClient } from './soroban-client.js';
 
 describe('SorobanClient', () => {
@@ -24,31 +24,33 @@ describe('SorobanClient', () => {
     const result = await client.invokeContract('C123', 'test_method', [], 'test-correlation-id-12345');
     assert.strictEqual(result.hash, 'txhash1234567890');
     assert.strictEqual(result.correlationId, 'test-correlation-id-12345');
-import { describe, it, expect, vi } from 'vitest';
-import { SorobanClient } from './soroban-client.js';
+  });
 
-describe('SorobanClient', () => {
   it('refreshes source account sequence on submission failure', async () => {
     const client = new SorobanClient();
     let getAccountCalls = 0;
 
     client.sourceKeypair = {
       publicKey: () => 'GBANKKEY1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ1234',
-      sign: vi.fn(),
+      sign: mock.fn(),
     };
 
     client.server = {
-      getAccount: vi.fn(async () => {
+      getAccount: mock.fn(async () => {
         getAccountCalls++;
         return { sequenceNumber: () => String(100 + getAccountCalls), sequence: String(100 + getAccountCalls) };
       }),
-      simulateTransaction: vi.fn(async () => ({ error: 'sim_error' })),
+      simulateTransaction: mock.fn(async () => ({ error: 'sim_error' })),
     };
 
     client.sourceAccount = { sequenceNumber: () => '100', sequence: '100' };
 
-    await expect(client.invokeContract('C123', 'test_method', [])).rejects.toThrow('test_method simulation failed: sim_error');
-    expect(client.server.getAccount).toHaveBeenCalled();
-    expect(getAccountCalls).toBeGreaterThan(0);
+    await assert.rejects(
+      async () => {
+        await client.invokeContract('C123', 'test_method', []);
+      },
+      /test_method simulation failed: sim_error/
+    );
+    assert.strictEqual(getAccountCalls > 0, true);
   });
 });
