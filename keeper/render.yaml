@@ -1,5 +1,5 @@
 services:
-  - type: worker
+  - type: web
     name: chronostar-keeper
     runtime: node
     rootDir: keeper
@@ -7,6 +7,7 @@ services:
     plan: free
     buildCommand: npm install
     startCommand: npm start
+    healthCheckPath: /healthz
     envVars:
       - key: KEEPER_SECRET
         sync: false
