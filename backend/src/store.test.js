@@ -1,3 +1,6 @@
+import { describe, it } from 'node:test';
+import assert from 'node:assert/strict';
+import { createEventStore } from './store.js';
 import { describe, it } from "node:test";
 import assert from "node:assert";
 import { createEventStore } from "./store.js";
@@ -12,6 +15,11 @@ describe("EventStore Drivers", () => {
       assert.strictEqual(Array.isArray(initial), true);
 
       const appended = await store.append(sampleEvent);
+      assert.strictEqual(appended.length > 0, true);
+
+      const listed = await store.list(10);
+      assert.strictEqual(listed.length > 0, true);
+      assert.strictEqual(listed[0].type, 'vault');
       assert.ok(appended.length > 0);
 
       const listed = await store.list(10);
