@@ -4,7 +4,7 @@ on:
   push:
     branches: [master]
     paths:
-      - 'frontend/**'
+      - "frontend/**"
 
 jobs:
   lint:
@@ -17,6 +17,20 @@ jobs:
       - run: npm install
         working-directory: frontend
       - run: npm run lint
+        working-directory: frontend
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - run: npm install
+        working-directory: frontend
+      - run: npm run typecheck
+        working-directory: frontend
+      - run: npm test
         working-directory: frontend
 
   e2e:
@@ -37,7 +51,7 @@ jobs:
 
   deploy:
     runs-on: ubuntu-latest
-    needs: lint
+    needs: [lint, test]
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
